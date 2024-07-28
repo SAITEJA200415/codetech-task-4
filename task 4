@@ -1,0 +1,45 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_ADXL345_U.h>
+#include <SoftwareSerial.h>
+// Define the pins for the sensors
+#define HEART_RATE_PIN A0
+#define BLOOD_PRESSURE_PIN A1
+// Initialize the accelerometer
+Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
+// Bluetooth module
+SoftwareSerial bluetooth(2, 3); // RX, TX
+void setup() {
+  Serial.begin(9600);
+  bluetooth.begin(9600);
+  // Initialize the accelerometer
+  if(!accel.begin()) {
+    Serial.println("Ooops, no ADXL345 detected ... Check your wiring!");
+    while(1);
+  }
+  // Set range of the accelerometer
+  accel.setRange(ADXL345_RANGE_16_G);
+  // Calibrate the sensors if necessary
+  // Calibration code goes here
+  Serial.println("Wearable Health Monitor Started");
+}
+void loop() {
+  // Read heart rate
+  int heartRate = analogRead(HEART_RATE_PIN);
+  // Simulate heart rate conversion
+  heartRate = map(heartRate, 0, 1023, 60, 100);
+  // Read blood pressure
+  int bloodPressure = analogRead(BLOOD_PRESSURE_PIN);
+  // Simulate blood pressure conversion
+  bloodPressure = map(bloodPressure, 0, 1023, 80, 120);
+  // Read activity levels from accelerometer
+  sensors_event_t event; 
+  accel.getEvent(&event);
+  // Send data over Bluetooth
+  String data = String("Heart Rate: ") + heartRate + ", Blood Pressure: " + bloodPressure + ", Activity: " + event.acceleration.x + ", " + event.acceleration.y + ", " + event.acceleration.z;
+  bluetooth.println(data);
+  // Debug data on Serial Monitor
+  Serial.println(data);
+  // Delay for a second
+  delay(1000);
+}
